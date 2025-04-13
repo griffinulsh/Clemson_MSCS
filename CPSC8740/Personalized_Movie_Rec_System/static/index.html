@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Movie Recommender</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    #movies div {
+      margin-bottom: 15px;
+    }
+
+    input[type=number] {
+      width: 50px;
+      padding: 5px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    ul li {
+      margin: 10px 0;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Rate These Movies</h1>
+
+  <div id="movies"></div>
+
+  <button onclick="submitRatings()">Get Recommendations</button>
+
+  <h2>Your Recommendations:</h2>
+  <ul id="recommendations"></ul>
+
+<script>
+let ratings = [];
+
+fetch('/get_movies')
+.then(response => response.json())
+.then(movies => {
+  const container = document.getElementById('movies');
+  movies.forEach(movie => {
+    container.innerHTML += `
+      <table style="margin: 0 auto; width: 50%;">
+        <tr>
+          <td style="text-align: left;">${movie.title}</td>
+          <td style="text-align: right;"><input type="number" min="1" max="5" id="${movie.title}" placeholder="1-5"/></td>
+        </tr>
+      </table>
+    `;
+  });
+});
+
+function submitRatings() {
+  ratings = [];
+  document.querySelectorAll('input').forEach(input => {
+    if (input.value) {
+      ratings.push({ title: input.id, rating: parseFloat(input.value) });
+    }
+  });
+
+  fetch('/recommend', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ratings })
+  })
+  .then(response => response.json())
+  .then(recommendations => {
+    const recDiv = document.getElementById('recommendations');
+    recDiv.innerHTML = "";
+    recommendations.forEach(r => {
+      recDiv.innerHTML += `<li>${r}</li>`;
+    });
+  });
+}
+</script>
+
+</body>
+
+</html>
